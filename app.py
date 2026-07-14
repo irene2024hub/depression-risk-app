@@ -2,49 +2,59 @@ import streamlit as st
 import joblib
 import numpy as np
 import pandas as pd
-import sqlite3
 from datetime import datetime
-import os
+import json
+import urllib.request
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "predictions.db")
+TURSO_URL = st.secrets["turso"]["url"]
+TURSO_TOKEN = st.secrets["turso"]["token"]
 
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute("""CREATE TABLE IF NOT EXISTS predictions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        timestamp TEXT, age INT, sex INT, course_type INT, institution INT,
-        sci_insomnia INT, gad7_anxiety INT, pss_stress INT,
-        mdq_mania INT, sbq_suicidal_ideation INT,
-        p16_psychotic_exp_sum INT, ucla3_loneliness INT,
-        prediction INT, probability REAL
-    )""")
-    conn.commit()
-    conn.close()
-
-init_db()
+def _turso(sql, params=None):
+    req_body = {"requests": [{"type": "execute", "stmt": {"sql": sql}}]}
+    if params:
+        args = []
+        for v in params:
+            if v is None:
+                args.append({"type": "null", "value": None})
+            elif isinstance(v, str):
+                args.append({"type": "text", "value": v})
+            elif isinstance(v, bool) or isinstance(v, int):
+                args.append({"type": "integer", "value": str(v)})
+            else:
+                args.append({"type": "float", "value": v})
+        req_body["requests"][0]["stmt"]["args"] = args
+    payload = json.dumps(req_body).encode()
+    req = urllib.request.Request(TURSO_URL + "/v2/pipeline", data=payload, method="POST")
+    req.add_header("Authorization", "Bearer " + TURSO_TOKEN)
+    req.add_header("Content-Type", "application/json")
+    resp = urllib.request.urlopen(req)
+    return json.loads(resp.read())
 
 def save_prediction(data, pred, prob):
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute("""INSERT INTO predictions (
+    sql = """INSERT INTO predictions (
         timestamp, age, sex, course_type, institution,
         sci_insomnia, gad7_anxiety, pss_stress,
         mdq_mania, sbq_suicidal_ideation,
         p16_psychotic_exp_sum, ucla3_loneliness,
         prediction, probability
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-        (datetime.now().isoformat(), data["Age"], data["Sex"],
-         data["Course_Type"], data["Institution"], data["SCI_Insomnia"],
-         data["GAD7_Anxiety"], data["PSS_Stress"], data["MDQ_Mania"],
-         data["SBQ_Suicidal_Ideation"], data["P16_Psychotic_Exp_Sum"],
-         data["UCLA3_Loneliness"], int(pred), float(prob)))
-    conn.commit()
-    conn.close()
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
+    params = (
+        datetime.now().isoformat(), data["Age"], data["Sex"],
+        data["Course_Type"], data["Institution"], data["SCI_Insomnia"],
+        data["GAD7_Anxiety"], data["PSS_Stress"], data["MDQ_Mania"],
+        data["SBQ_Suicidal_Ideation"], data["P16_Psychotic_Exp_Sum"],
+        data["UCLA3_Loneliness"], int(pred), float(prob)
+    )
+    _turso(sql, params)
 
 def load_stats():
-    conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql("SELECT * FROM predictions", conn)
-    conn.close()
-    return df
+    result = _turso("SELECT * FROM predictions")
+    rows = result["results"][0]["response"]["result"]["rows"]
+    cols = [c["name"] for c in result["results"][0]["response"]["result"]["cols"]]
+    data = []
+    for row in rows:
+        data.append([cell.get("value") for cell in row])
+    return pd.DataFrame(data, columns=cols)
 
 st.set_page_config(
     page_title="Intelligent Depression Risk Prediction — Student Wellbeing",
