@@ -76,7 +76,17 @@ def load_stats():
     data = []
     for row in rows:
         data.append([cell.get("value") for cell in row])
-    return pd.DataFrame(data, columns=cols)
+    df = pd.DataFrame(data, columns=cols)
+    numeric_cols = ["id", "age", "sex", "course_type", "institution",
+                    "sci_insomnia", "gad7_anxiety", "pss_stress",
+                    "mdq_mania", "sbq_suicidal_ideation",
+                    "p16_psychotic_exp_sum", "ucla3_loneliness", "prediction"]
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+    if "probability" in df.columns:
+        df["probability"] = pd.to_numeric(df["probability"], errors="coerce")
+    return df
 
 # ------------------------------------------------------------
 # Professional theme (calm, clinical-but-warm palette)
