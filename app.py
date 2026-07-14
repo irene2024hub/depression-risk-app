@@ -174,6 +174,38 @@ with st.expander("💡 Why early detection matters"):
     )
 
 # ------------------------------------------------------------
+# What these scores mean
+# ------------------------------------------------------------
+st.markdown(
+    '<div style="height:4px;background:#4FD1B3;border-radius:3px;margin-bottom:2px;"></div>',
+    unsafe_allow_html=True,
+)
+with st.expander("📋 What these scores mean"):
+    st.markdown("""
+Each section below corresponds to a validated psychological questionnaire. Your answers
+are used to calculate a **total score** for each measure, which the prediction model
+uses to estimate depression risk.
+
+| Measure | Full Name | What it measures | Score Range |
+|---|---|---|---|
+| **GAD-7** | Generalised Anxiety Disorder-7 | Anxiety symptom severity over the past 2 weeks | 0–21 |
+| **PSS-10** | Perceived Stress Scale-10 | How stressful you perceive your life to be over the past month | 0–40 |
+| **SCI** | Sleep Condition Indicator | Sleep quality and insomnia symptoms | 0–32 |
+| **UCLA-3** | UCLA Loneliness Scale (Version 3) | Subjective feelings of loneliness and social isolation | 20–80 |
+| **SBQ-R** | Suicidal Behaviors Questionnaire-Revised | Suicidal ideation, communication, and likelihood | 3–18 |
+| **MDQ** | Mood Disorder Questionnaire | Manic/hypomanic symptoms (bipolar spectrum screening) | 0–13 |
+| **PQ-16** | Prodromal Questionnaire-16 | Psychotic-like experiences and distress | 0–64 |
+""")
+    st.caption(
+        "Note: this app predicts a **depression risk category and probability**, not an "
+        "actual PHQ-9 score. The PHQ-9 (0–27, NHS-validated) was used to train the model's "
+        "labels, not as something this tool outputs directly. A result of \"Likely\" "
+        "corresponds to the clinical threshold used during training (PHQ-9 ≥ 10 — moderate "
+        "depressive symptoms or greater, per NHS banding) — it flags a pattern worth "
+        "following up on, not a diagnosis."
+    )
+
+# ------------------------------------------------------------
 # Questionnaire data structures
 # ------------------------------------------------------------
 FREQ_4 = [
