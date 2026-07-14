@@ -20,6 +20,8 @@ except (FileNotFoundError, KeyError):
     TURSO_URL = os.environ["TURSO_URL"]
     TURSO_TOKEN = os.environ["TURSO_TOKEN"]
 
+TURSO_URL = TURSO_URL.replace("libsql://", "https://").rstrip("/")
+
 def _turso(sql, params=None):
     req_body = {"requests": [{"type": "execute", "stmt": {"sql": sql}}]}
     if params:
