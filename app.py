@@ -2,6 +2,49 @@ import streamlit as st
 import joblib
 import numpy as np
 import pandas as pd
+import sqlite3
+from datetime import datetime
+import os
+
+DB_PATH = os.path.join(os.path.dirname(__file__), "predictions.db")
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""CREATE TABLE IF NOT EXISTS predictions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT, age INT, sex INT, course_type INT, institution INT,
+        sci_insomnia INT, gad7_anxiety INT, pss_stress INT,
+        mdq_mania INT, sbq_suicidal_ideation INT,
+        p16_psychotic_exp_sum INT, ucla3_loneliness INT,
+        prediction INT, probability REAL
+    )""")
+    conn.commit()
+    conn.close()
+
+init_db()
+
+def save_prediction(data, pred, prob):
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""INSERT INTO predictions (
+        timestamp, age, sex, course_type, institution,
+        sci_insomnia, gad7_anxiety, pss_stress,
+        mdq_mania, sbq_suicidal_ideation,
+        p16_psychotic_exp_sum, ucla3_loneliness,
+        prediction, probability
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (datetime.now().isoformat(), data["Age"], data["Sex"],
+         data["Course_Type"], data["Institution"], data["SCI_Insomnia"],
+         data["GAD7_Anxiety"], data["PSS_Stress"], data["MDQ_Mania"],
+         data["SBQ_Suicidal_Ideation"], data["P16_Psychotic_Exp_Sum"],
+         data["UCLA3_Loneliness"], int(pred), float(prob)))
+    conn.commit()
+    conn.close()
+
+def load_stats():
+    conn = sqlite3.connect(DB_PATH)
+    df = pd.read_sql("SELECT * FROM predictions", conn)
+    conn.close()
+    return df
 
 st.set_page_config(
     page_title="Intelligent Depression Risk Prediction — Student Wellbeing",
@@ -596,6 +639,8 @@ if st.button("Predict", type="primary"):
     pred = model.predict(X_new_sc)[0]
     proba = model.predict_proba(X_new_sc)[0][1]
 
+    save_prediction(user_input, pred, proba)
+
     st.divider()
     if pred == 1:
         st.error(f"⚠️ Depression risk: **Likely** (probability: {proba*100:.1f}%)")
@@ -616,6 +661,33 @@ if st.button("Predict", type="primary"):
         "questionnaire data. It is not a diagnostic tool. If you or someone you know is "
         "struggling, please consult a mental health professional."
     )
+
+# ------------------------------------------------------------
+# Average Data
+# ------------------------------------------------------------
+with st.expander("📊 Average Data"):
+    df = load_stats()
+    if df.empty:
+        st.caption("No predictions recorded yet.")
+    else:
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Total Predictions", len(df))
+        pct = df["prediction"].mean() * 100
+        m2.metric("Depression Likely", f"{pct:.1f}%")
+        m3.metric("Depression Unlikely", f"{100-pct:.1f}%")
+
+        st.markdown("**Average Scores Across All Users:**")
+        score_cols = ["age", "sex", "course_type", "institution",
+                      "sci_insomnia", "gad7_anxiety", "pss_stress",
+                      "mdq_mania", "sbq_suicidal_ideation",
+                      "p16_psychotic_exp_sum", "ucla3_loneliness"]
+        labels = ["Age", "Sex", "Course Type", "Institution",
+                  "SCI (Insomnia)", "GAD-7 (Anxiety)", "PSS (Stress)",
+                  "MDQ (Mania)", "SBQ-R (Suicidal Ideation)",
+                  "PQ-16 (Psychotic Exp.)", "UCLA-3 (Loneliness)"]
+        avg = df[score_cols].mean().round(1)
+        avg_df = pd.DataFrame({"Measure": labels, "Average Score": avg.values})
+        st.dataframe(avg_df, use_container_width=True, hide_index=True)
 
 st.divider()
 st.caption(
