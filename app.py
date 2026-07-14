@@ -5,9 +5,14 @@ import pandas as pd
 from datetime import datetime
 import json
 import urllib.request
+import os
 
-TURSO_URL = st.secrets["turso"]["url"]
-TURSO_TOKEN = st.secrets["turso"]["token"]
+try:
+    TURSO_URL = st.secrets["turso"]["url"]
+    TURSO_TOKEN = st.secrets["turso"]["token"]
+except (FileNotFoundError, KeyError):
+    TURSO_URL = os.environ["TURSO_URL"]
+    TURSO_TOKEN = os.environ["TURSO_TOKEN"]
 
 def _turso(sql, params=None):
     req_body = {"requests": [{"type": "execute", "stmt": {"sql": sql}}]}
