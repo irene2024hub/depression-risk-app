@@ -2,91 +2,11 @@ import streamlit as st
 import joblib
 import numpy as np
 import pandas as pd
-from datetime import datetime
-import json
-import urllib.request
-import os
-
 st.set_page_config(
     page_title="Intelligent Depression Risk Prediction — Student Wellbeing",
     page_icon="🧠",
     layout="centered",
 )
-
-TURSO_URL = os.environ.get("TURSO_URL")
-TURSO_TOKEN = os.environ.get("TURSO_TOKEN")
-if not TURSO_URL or not TURSO_TOKEN:
-    try:
-        TURSO_URL = st.secrets["turso"]["url"]
-        TURSO_TOKEN = st.secrets["turso"]["token"]
-    except Exception:
-        TURSO_URL = None
-        TURSO_TOKEN = None
-if TURSO_URL:
-    TURSO_URL = TURSO_URL.replace("libsql://", "https://").rstrip("/")
-
-def _turso(sql, params=None):
-    if not TURSO_URL or not TURSO_TOKEN:
-        return {"results": [{"response": {"result": {"cols": [], "rows": []}}}]}
-    req_body = {"requests": [{"type": "execute", "stmt": {"sql": sql}}]}
-    if params:
-        args = []
-        for v in params:
-            if v is None:
-                args.append({"type": "null", "value": None})
-            elif isinstance(v, str):
-                args.append({"type": "text", "value": v})
-            elif isinstance(v, bool) or isinstance(v, int):
-                args.append({"type": "integer", "value": str(v)})
-            else:
-                args.append({"type": "float", "value": v})
-        req_body["requests"][0]["stmt"]["args"] = args
-    payload = json.dumps(req_body).encode()
-    req = urllib.request.Request(TURSO_URL + "/v2/pipeline", data=payload, method="POST")
-    req.add_header("Authorization", "Bearer " + TURSO_TOKEN)
-    req.add_header("Content-Type", "application/json")
-    resp = urllib.request.urlopen(req)
-    return json.loads(resp.read())
-
-def save_prediction(data, pred, prob):
-    if not TURSO_URL or not TURSO_TOKEN:
-        return
-    sql = """INSERT INTO predictions (
-        timestamp, age, sex, course_type, institution,
-        sci_insomnia, gad7_anxiety, pss_stress,
-        mdq_mania, sbq_suicidal_ideation,
-        p16_psychotic_exp_sum, ucla3_loneliness,
-        prediction, probability
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
-    params = (
-        datetime.now().isoformat(), data["Age"], data["Sex"],
-        data["Course_Type"], data["Institution"], data["SCI_Insomnia"],
-        data["GAD7_Anxiety"], data["PSS_Stress"], data["MDQ_Mania"],
-        data["SBQ_Suicidal_Ideation"], data["P16_Psychotic_Exp_Sum"],
-        data["UCLA3_Loneliness"], int(pred), float(prob)
-    )
-    _turso(sql, params)
-
-def load_stats():
-    if not TURSO_URL or not TURSO_TOKEN:
-        return pd.DataFrame()
-    result = _turso("SELECT * FROM predictions")
-    rows = result["results"][0]["response"]["result"]["rows"]
-    cols = [c["name"] for c in result["results"][0]["response"]["result"]["cols"]]
-    data = []
-    for row in rows:
-        data.append([cell.get("value") for cell in row])
-    df = pd.DataFrame(data, columns=cols)
-    numeric_cols = ["id", "age", "sex", "course_type", "institution",
-                    "sci_insomnia", "gad7_anxiety", "pss_stress",
-                    "mdq_mania", "sbq_suicidal_ideation",
-                    "p16_psychotic_exp_sum", "ucla3_loneliness", "prediction"]
-    for col in numeric_cols:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
-    if "probability" in df.columns:
-        df["probability"] = pd.to_numeric(df["probability"], errors="coerce")
-    return df
 
 # ------------------------------------------------------------
 # Professional theme (calm, clinical-but-warm palette)
@@ -672,8 +592,6 @@ if st.button("Predict", type="primary"):
     pred = model.predict(X_new_sc)[0]
     proba = model.predict_proba(X_new_sc)[0][1]
 
-    save_prediction(user_input, pred, proba)
-
     st.divider()
     if pred == 1:
         st.error(f"⚠️ Depression risk: **Likely** (probability: {proba*100:.1f}%)")
@@ -694,33 +612,6 @@ if st.button("Predict", type="primary"):
         "questionnaire data. It is not a diagnostic tool. If you or someone you know is "
         "struggling, please consult a mental health professional."
     )
-
-# ------------------------------------------------------------
-# Average Data
-# ------------------------------------------------------------
-with st.expander("📊 Average Data"):
-    df = load_stats()
-    if df.empty:
-        st.caption("No predictions recorded yet.")
-    else:
-        m1, m2, m3 = st.columns(3)
-        m1.metric("Total Predictions", len(df))
-        pct = df["prediction"].mean() * 100
-        m2.metric("Depression Likely", f"{pct:.1f}%")
-        m3.metric("Depression Unlikely", f"{100-pct:.1f}%")
-
-        st.markdown("**Average Scores Across All Users:**")
-        score_cols = ["age", "sex", "course_type", "institution",
-                      "sci_insomnia", "gad7_anxiety", "pss_stress",
-                      "mdq_mania", "sbq_suicidal_ideation",
-                      "p16_psychotic_exp_sum", "ucla3_loneliness"]
-        labels = ["Age", "Sex", "Course Type", "Institution",
-                  "SCI (Insomnia)", "GAD-7 (Anxiety)", "PSS (Stress)",
-                  "MDQ (Mania)", "SBQ-R (Suicidal Ideation)",
-                  "PQ-16 (Psychotic Exp.)", "UCLA-3 (Loneliness)"]
-        avg = df[score_cols].mean().round(1)
-        avg_df = pd.DataFrame({"Measure": labels, "Average Score": avg.values})
-        st.dataframe(avg_df, use_container_width=True, hide_index=True)
 
 st.divider()
 st.caption(
