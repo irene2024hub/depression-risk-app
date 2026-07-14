@@ -13,16 +13,21 @@ st.set_page_config(
     layout="centered",
 )
 
-try:
-    TURSO_URL = st.secrets["turso"]["url"]
-    TURSO_TOKEN = st.secrets["turso"]["token"]
-except (FileNotFoundError, KeyError):
-    TURSO_URL = os.environ["TURSO_URL"]
-    TURSO_TOKEN = os.environ["TURSO_TOKEN"]
-
-TURSO_URL = TURSO_URL.replace("libsql://", "https://").rstrip("/")
+TURSO_URL = os.environ.get("TURSO_URL")
+TURSO_TOKEN = os.environ.get("TURSO_TOKEN")
+if not TURSO_URL or not TURSO_TOKEN:
+    try:
+        TURSO_URL = st.secrets["turso"]["url"]
+        TURSO_TOKEN = st.secrets["turso"]["token"]
+    except Exception:
+        TURSO_URL = None
+        TURSO_TOKEN = None
+if TURSO_URL:
+    TURSO_URL = TURSO_URL.replace("libsql://", "https://").rstrip("/")
 
 def _turso(sql, params=None):
+    if not TURSO_URL or not TURSO_TOKEN:
+        return {"results": [{"response": {"result": {"cols": [], "rows": []}}}]}
     req_body = {"requests": [{"type": "execute", "stmt": {"sql": sql}}]}
     if params:
         args = []
@@ -44,6 +49,8 @@ def _turso(sql, params=None):
     return json.loads(resp.read())
 
 def save_prediction(data, pred, prob):
+    if not TURSO_URL or not TURSO_TOKEN:
+        return
     sql = """INSERT INTO predictions (
         timestamp, age, sex, course_type, institution,
         sci_insomnia, gad7_anxiety, pss_stress,
@@ -61,6 +68,8 @@ def save_prediction(data, pred, prob):
     _turso(sql, params)
 
 def load_stats():
+    if not TURSO_URL or not TURSO_TOKEN:
+        return pd.DataFrame()
     result = _turso("SELECT * FROM predictions")
     rows = result["results"][0]["response"]["result"]["rows"]
     cols = [c["name"] for c in result["results"][0]["response"]["result"]["cols"]]
