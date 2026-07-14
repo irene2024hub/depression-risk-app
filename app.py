@@ -87,6 +87,7 @@ st.markdown("""
     html, body, .stApp {
         background-color: #0E2A47;
         font-family: 'Inter', 'Segoe UI', sans-serif;
+        font-size: 18px;
     }
     h1, h2, h3, h4 {
         color: #FFFFFF !important;
