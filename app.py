@@ -304,8 +304,8 @@ def render_gad7():
     total = 0
     for i, q in enumerate(GAD7_QUESTIONS):
         label = f"{i+1}. {q}"
-        ans = st.selectbox(label, FREQ_4, key=f"gad7_{i}", label_visibility="collapsed")
         st.markdown(f'<div class="q-label">{label}</div>', unsafe_allow_html=True)
+        ans = st.selectbox(label, FREQ_4, key=f"gad7_{i}", label_visibility="collapsed")
         total += int(ans.split("(")[1].rstrip(")"))
     st.markdown(f'<div class="section-score">GAD-7 Total Score: <strong>{total}</strong> / 21</div>', unsafe_allow_html=True)
     return total
@@ -332,8 +332,8 @@ def render_pss():
     st.caption("Over the **last month**, how often have you felt or thought the following?")
     total = 0
     for i, q in enumerate(PSS_QUESTIONS):
-        ans = st.selectbox(f"Q{i+1}", FREQ_5, key=f"pss_{i}", label_visibility="collapsed")
         st.markdown(f'<div class="q-label">{i+1}. {q}</div>', unsafe_allow_html=True)
+        ans = st.selectbox(f"Q{i+1}", FREQ_5, key=f"pss_{i}", label_visibility="collapsed")
         score = int(ans.split("(")[1].rstrip(")"))
         if i in PSS_REVERSE:
             score = 4 - score
@@ -371,8 +371,8 @@ def render_sci():
     st.caption("Thinking about a **typical night in the last month**...")
     total = 0
     for i, q in enumerate(SCI_QUESTIONS):
-        ans = st.selectbox(f"Q{i+1}", SCI_OPTS[i], key=f"sci_{i}", label_visibility="collapsed")
         st.markdown(f'<div class="q-label">{i+1}. {q}</div>', unsafe_allow_html=True)
+        ans = st.selectbox(f"Q{i+1}", SCI_OPTS[i], key=f"sci_{i}", label_visibility="collapsed")
         total += int(ans.split("(")[1].rstrip(")"))
     st.markdown(f'<div class="section-score">SCI Total Score: <strong>{total}</strong> / 32 (higher = better sleep)</div>', unsafe_allow_html=True)
     return total
@@ -409,8 +409,8 @@ def render_ucla():
     st.caption("Indicate how often you feel each of the following:")
     total = 0
     for i, q in enumerate(UCLA_QUESTIONS):
-        ans = st.selectbox(f"Q{i+1}", FREQ_UCLA, key=f"ucla_{i}", label_visibility="collapsed")
         st.markdown(f'<div class="q-label">{i+1}. {q}</div>', unsafe_allow_html=True)
+        ans = st.selectbox(f"Q{i+1}", FREQ_UCLA, key=f"ucla_{i}", label_visibility="collapsed")
         score = int(ans.split("(")[1].rstrip(")"))
         if i in UCLA_REVERSE:
             score = 5 - score
@@ -458,20 +458,16 @@ def render_sbq():
     st.caption("Please select the option that best applies to you.")
 
     st.markdown("**1. Have you ever thought about or attempted to kill yourself?**")
-    ans1 = st.selectbox("SBQ1", SBQ1_OPTS, key="sbq_1", label_visibility="collapsed")
-    s1 = int(ans1.split("(")[1].rstrip(")"))
+    s1 = int(st.selectbox("SBQ1", SBQ1_OPTS, key="sbq_1", label_visibility="collapsed").split("(")[1].rstrip(")"))
 
     st.markdown("**2. How often have you thought about killing yourself in the past year?**")
-    ans2 = st.selectbox("SBQ2", SBQ2_OPTS, key="sbq_2", label_visibility="collapsed")
-    s2 = int(ans2.split("(")[1].rstrip(")"))
+    s2 = int(st.selectbox("SBQ2", SBQ2_OPTS, key="sbq_2", label_visibility="collapsed").split("(")[1].rstrip(")"))
 
     st.markdown("**3. Have you ever told someone that you were going to commit suicide, or that you might do it?**")
-    ans3 = st.selectbox("SBQ3", SBQ3_OPTS, key="sbq_3", label_visibility="collapsed")
-    s3 = int(ans3.split("(")[1].rstrip(")"))
+    s3 = int(st.selectbox("SBQ3", SBQ3_OPTS, key="sbq_3", label_visibility="collapsed").split("(")[1].rstrip(")"))
 
     st.markdown("**4. How likely is it that you will attempt suicide someday?**")
-    ans4 = st.selectbox("SBQ4", SBQ4_OPTS, key="sbq_4", label_visibility="collapsed")
-    s4 = int(ans4.split("(")[1].rstrip(")"))
+    s4 = int(st.selectbox("SBQ4", SBQ4_OPTS, key="sbq_4", label_visibility="collapsed").split("(")[1].rstrip(")"))
 
     total = s1 + s2 + s3 + s4
     st.markdown(f'<div class="section-score">SBQ-R Total Score: <strong>{total}</strong> / 18</div>', unsafe_allow_html=True)
@@ -510,8 +506,8 @@ def render_mdq():
     st.caption("**Has there ever been a period of time when you were not your usual self and…**")
     total = 0
     for i, q in enumerate(MDQ_QUESTIONS):
-        ans = st.selectbox(f"Q{i+1}", YES_NO, key=f"mdq_{i}", label_visibility="collapsed")
         st.markdown(f'<div class="q-label">{i+1}. {q}</div>', unsafe_allow_html=True)
+        ans = st.selectbox(f"Q{i+1}", YES_NO, key=f"mdq_{i}", label_visibility="collapsed")
         total += int(ans.split("(")[1].rstrip(")"))
     st.markdown(f'<div class="section-score">MDQ Total Score: <strong>{total}</strong> / 13</div>', unsafe_allow_html=True)
     return total
@@ -550,8 +546,8 @@ def render_p16():
     st.caption("For each statement, indicate if it is true or false, and if true, how distressing it is.")
     total = 0
     for i, q in enumerate(P16_QUESTIONS):
-        ans = st.selectbox(f"Q{i+1}", P16_OPTS, key=f"p16_{i}", label_visibility="collapsed")
         st.markdown(f'<div class="q-label">{i+1}. {q}</div>', unsafe_allow_html=True)
+        ans = st.selectbox(f"Q{i+1}", P16_OPTS, key=f"p16_{i}", label_visibility="collapsed")
         val = int(ans.split("(")[1].rstrip(")"))
         total += val
     st.markdown(f'<div class="section-score">PQ-16 Total Score: <strong>{total}</strong> / 64</div>', unsafe_allow_html=True)
