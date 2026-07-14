@@ -7,6 +7,12 @@ import json
 import urllib.request
 import os
 
+st.set_page_config(
+    page_title="Intelligent Depression Risk Prediction — Student Wellbeing",
+    page_icon="🧠",
+    layout="centered",
+)
+
 try:
     TURSO_URL = st.secrets["turso"]["url"]
     TURSO_TOKEN = st.secrets["turso"]["token"]
@@ -60,12 +66,6 @@ def load_stats():
     for row in rows:
         data.append([cell.get("value") for cell in row])
     return pd.DataFrame(data, columns=cols)
-
-st.set_page_config(
-    page_title="Intelligent Depression Risk Prediction — Student Wellbeing",
-    page_icon="🧠",
-    layout="centered",
-)
 
 # ------------------------------------------------------------
 # Professional theme (calm, clinical-but-warm palette)
