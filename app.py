@@ -705,13 +705,13 @@ st.caption(
 st.markdown(
     """
     <div style="text-align:center; padding-top: 1.2em; color:#B7C6D6; font-size:0.9em;">
-        Built by <b>Irene Ufuoma Ayakazi</b> — Data Scientist &amp; Analyst<br>
+        Built by <b style="color:#FFD700;">Irene Ufuoma Ayakazi</b> — Data Scientist &amp; Analyst<br>
         Open to freelance and remote opportunities —
         <a href="https://www.linkedin.com/in/irene-ayakazi/" target="_blank"
-           style="color:#4FD1B3; text-decoration:none;">LinkedIn</a>
+           style="color:#4A90D9; text-decoration:none;">LinkedIn</a>
         &nbsp;|&nbsp;
         <a href="https://github.com/irene2024hub" target="_blank"
-           style="color:#4FD1B3; text-decoration:none;">GitHub</a>
+           style="color:#4A90D9; text-decoration:none;">GitHub</a>
     </div>
     """,
     unsafe_allow_html=True,
