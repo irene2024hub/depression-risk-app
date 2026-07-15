@@ -586,6 +586,10 @@ st.markdown(
 )
 
 if st.button("Predict", type="primary"):
+    if gad7 == 0 and mdq == 0 and p16 == 0 and sbq == 3:
+        st.warning("Please answer the questions in the questionnaires above before predicting.")
+        st.stop()
+
     X_new = pd.DataFrame([user_input])[feature_cols]
     X_new_sc = scaler.transform(X_new)
 
