@@ -541,25 +541,25 @@ st.caption(
 )
 
 # Questionnaire sections in expanders
-with st.expander("😰 GAD-7 — Anxiety (7 questions)", expanded=False):
+with st.expander("😰 GAD-7 — Anxiety (7 questions)", expanded=True):
     gad7 = render_gad7()
 
-with st.expander("😣 PSS-10 — Perceived Stress (10 questions)", expanded=False):
+with st.expander("😣 PSS-10 — Perceived Stress (10 questions)", expanded=True):
     pss = render_pss()
 
-with st.expander("😴 SCI — Sleep Condition Indicator (8 questions)", expanded=False):
+with st.expander("😴 SCI — Sleep Condition Indicator (8 questions)", expanded=True):
     sci = render_sci()
 
-with st.expander("👤 UCLA Loneliness Scale (20 questions)", expanded=False):
+with st.expander("👤 UCLA Loneliness Scale (20 questions)", expanded=True):
     ucla = render_ucla()
 
-with st.expander("⚠️ SBQ-R — Suicidal Behaviours (4 questions)", expanded=False):
+with st.expander("⚠️ SBQ-R — Suicidal Behaviours (4 questions)", expanded=True):
     sbq = render_sbq()
 
-with st.expander("📈 MDQ — Mood Disorder (13 questions)", expanded=False):
+with st.expander("📈 MDQ — Mood Disorder (13 questions)", expanded=True):
     mdq = render_mdq()
 
-with st.expander("🧠 PQ-16 — Prodromal Experiences (16 questions)", expanded=False):
+with st.expander("🧠 PQ-16 — Prodromal Experiences (16 questions)", expanded=True):
     p16 = render_p16()
 
 # Collect all feature values in the order expected by the model
